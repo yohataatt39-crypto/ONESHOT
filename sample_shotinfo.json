@@ -1,0 +1,34 @@
+{
+	"DATA": {
+		"ballspeed": "   31.3293",
+		"incline": "   33.5582",
+		"azimuth": "    1.4193",
+		"backspin": " 2234.4412",
+		"sidespin": " -253.7413",
+		"spinmag2d": " 2248.8025",
+		"spinaxis2d": "   -6.4787",
+		"clubspeed": "   23.4622",
+		"Assurance_clubspeed": "81",
+		"clubpath": "    5.4199",
+		"Assurance_clubpath": "90",
+		"clubfaceangle": "    0.0000",
+		"Assurance_clubfaceangle": "0",
+		"clubattackangle": "    0.0000",
+		"Assurance_clubattackangle": "0",
+		"clubloftangle": "    0.0000",
+		"Assurance_clubloftangle": "0",
+		"clublieangle": "    0.0000",
+		"Assurance_clublieangle": "0",
+		"clubfaceimpactLateral": "    0.0000",
+		"Assurance_clubfaceimpactLateral": "0",
+		"clubfaceimpactVertical": "    0.0000",
+		"Assurance_clubfaceimpactVertical": "0"
+	}
+,	"BALLIMPACT": {
+		"valid": "1",
+		"name": "ballimpact.jpg",
+		"xpos": "116",
+		"ypos": "112",
+		"radius": "31"
+	}
+}
