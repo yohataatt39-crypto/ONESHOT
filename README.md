@@ -54,3 +54,8 @@ PC版Chrome / Edgeでは従来どおり、起動時に以下を指定して実�
 - 従来の `K_distance` / `K_side` 校正UI・localStorage値は評価計算に使用しない
 - VIEWとのユーザ補正値は飛距離・左右差とも0固定
 - ショット履歴には検証用として `trajectory_model`, `base_distance_yd`, `launch_lateral_yd`, `curve_lateral_yd` を保存
+
+
+## ショット履歴のRAWデータ保存
+
+各ショットの評価結果には `raw_shot_json` を追加し、EYE MINI / VIEW から読み込んだ元の shotinfo JSON オブジェクト全体を保存します。`DATA` だけでなく `BALLIMPACT` 等を含む入力JSON全体が `oneshot_shot_history.json` の各 `results[]` 要素に格納されます。これにより、後から計算式を変更した場合でも履歴のRAW値から再計算できます。既存の履歴データにはRAWデータは遡及追加されません。
