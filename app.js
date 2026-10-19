@@ -2,7 +2,7 @@ const CLUBS=[
 ['1W','DRIVER_DISTANCE',180,220,250,30,1.1,1,.9,.75],['3W','TARGET_ACCURACY',165,200,225,25,7,12,18,27],['5W','TARGET_ACCURACY',150,185,210,23,7,12,18,26],['UT','TARGET_ACCURACY',140,175,200,22,6,11,17,25],['5I','TARGET_ACCURACY',130,165,190,20,6,10,16,24],['6I','TARGET_ACCURACY',120,155,180,18,5,10,15,22],['7I','TARGET_ACCURACY',110,145,170,17,5,9,14,21],['8I','TARGET_ACCURACY',100,135,155,15,4,8,13,19],['9I','TARGET_ACCURACY',90,125,145,14,4,8,12,18],['PW','TARGET_ACCURACY',80,110,130,12,3,7,11,16],['AW','TARGET_ACCURACY',65,95,110,10,3,6,10,15],['SW','TARGET_ACCURACY',50,80,95,8,3,6,9,14]
 ].map(x=>({Club:x[0],EvaluationMode:x[1],RED_DistanceYd:x[2],WHITE_DistanceYd:x[3],BLUE_DistanceYd:x[4],LateralELimitYd:x[5],S_Threshold:x[6],A_Threshold:x[7],B_Threshold:x[8],D_Threshold:x[9]}));
 const PALETTES={S:['#ff699a','#ffbf7e','#ffd08c','#9eeedd','PERFECT!',12,18,3],A:['#ff9f67','#ffd276','#ffd58d','#fff0c9','NICE SHOT!',8,12,2],B:['#41cac9','#9fe18b','#e5f08c','#bff4e8','GOOD SHOT!',4,7,1],D:['#ef74c3','#c497eb','#ecc6f7','#eadcff','TRY AGAIN!',3,4,1],E:['#719af2','#a897ed','#c5daff','#e0e5ff','CHALLENGE!',3,3,1]};
-const s={page:'setup',klass:'',tee:'',member:'',clubs:[],shot:0,results:[],busy:false,Kd:+localStorage.Kd||1,Ks:+localStorage.Ks||0,jsonDir:null,dataDir:null,lastFile:'',profiles:{},history:{},keypadTarget:null,demo:false,demoTimer:null};
+const s={page:'setup',klass:'',tee:'',member:'',clubs:[],shot:0,results:[],busy:false,jsonDir:null,dataDir:null,lastFile:'',profiles:{},history:{},keypadTarget:null,demo:false,demoTimer:null};
 const el=()=>document.querySelector('#screen'); const brand=()=>'<div class="brand">リアルショットデータ「ONE SHOT」⛳</div>';
 function render(){const e=el();e.style.opacity=1; let h=brand()+(s.demo?'<div class="demo-badge">DEMO</div>':'');
  if(s.page==='setup')h+=`<h1 class="title">ONE SHOT 起動設定</h1><p class="sub">最初に、ショットJSON監視フォルダと<br>ユーザデータ・ショット実績データ保管先を指定してください。</p><div class="setupgrid"><button class="gummy small" data-json-dir>① JSON監視フォルダ</button><div class="folderstate" id="json-state">未指定</div><button class="gummy small" data-data-dir>② データ保管先フォルダ</button><div class="folderstate" id="data-state">未指定</div></div><button class="gummy small" data-setup-ok disabled>起動する</button><div class="demoarea"><div class="demo-or">スマートフォンで画面だけ確認する場合</div><button class="secondary demo-button" data-demo>デモ表示で起動</button></div><p class="note">通常運用ではPC版Chrome / Edgeで2フォルダを指定します。iPhone等、フォルダAPI非対応端末では「デモ表示で起動」を使用してください。</p>`;
@@ -18,7 +18,7 @@ function render(){const e=el();e.style.opacity=1; let h=brand()+(s.demo?'<div cl
  if(s.page==='rank')h+=rankHTML(s.results.at(-1));
  if(s.page==='results')h+=`<h1 class="title">今日のチャレンジ結果</h1><div class="results">${s.results.map((r,i)=>`<div class="result"><b>${r.club}</b><div>${i+1}. ${['First','Second','Third'][i]} try</div><div class="r">${r.rank}</div><small>${r.estimated_distance_yd.toFixed(1)} yd / 左右 ${r.estimated_lateral_yd.toFixed(1)} yd</small></div>`).join('')}</div><button class="gummy small" data-go="level">次へ</button>`;
  if(s.page==='level'){let hist=historyData(),level=calcLevel(hist),remain=Math.max(0,5-(hist.length%5||5));h+=`<h1 class="title">おつかれさまでした。</h1><div class="sub">あなたの現在のレベルは、</div><div class="level">${level??'―'}</div><div class="title" style="font-size:36px">次回のレベル判定まで あと「${remain}」回</div><button class="gummy small" data-reset>ログインID入力へ</button>`;}
- h+=`<details class="dev"><summary>開発校正</summary><label>K_distance <input id="kd" type="number" step="0.01" value="${s.Kd}"></label><br><label>K_side <input id="ks" type="number" step="0.001" value="${s.Ks}"></label><button data-cal>保存</button></details>`;e.innerHTML=h;bind();}
+ e.innerHTML=h;bind();}
 function bind(){
  document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>nav(b.dataset.go,b));
  document.querySelectorAll('[data-class]').forEach(b=>b.onclick=()=>{s.klass=b.dataset.class;nav('tee',b)});
@@ -34,7 +34,6 @@ function bind(){
  document.querySelectorAll('[data-club]').forEach(b=>b.onclick=()=>{let c=b.dataset.club;s.clubs=s.clubs.includes(c)?s.clubs.filter(x=>x!==c):(s.clubs.length<3?[...s.clubs,c]:s.clubs);render()});
  document.querySelector('[data-club-ok]')?.addEventListener('click',e=>nav('ready',e.currentTarget));
  document.querySelector('[data-reset]')?.addEventListener('click',()=>{Object.assign(s,{page:'login',member:'',clubs:[],shot:0,results:[],lastFile:''});render()});
- document.querySelector('[data-cal]')?.addEventListener('click',()=>{s.Kd=+document.querySelector('#kd').value;s.Ks=+document.querySelector('#ks').value;localStorage.Kd=s.Kd;localStorage.Ks=s.Ks;alert('校正値を保存しました')})
 }
 function keypadHTML(){return `<div class="keypad inline-keypad" id="keypad"><div class="keypad-title">テンキー</div><div class="keys">${['1','2','3','4','5','6','7','8','9','C','0','⌫'].map(k=>`<button type="button" data-key="${k}">${k}</button>`).join('')}</div></div>`}
 function openKeypad(i){s.keypadTarget=i}
@@ -51,7 +50,29 @@ function profiles(){return s.profiles}async function saveProfile(){s.profiles[s.
 function getClub(c){return CLUBS.find(x=>x.Club===c)}function ref(d){return d[s.tee+'_DistanceYd']}function challenge(c,t){return c==='1W'?`「ドライバーで思いっきりティーショットしてください」`:`「${c}で ${t}yd の目標を狙ってください」`}
 async function pollDir(){if(s.demo){if(s.page!=='shot'||s.demoTimer)return;s.demoTimer=setTimeout(()=>{s.demoTimer=null;if(s.page!=='shot')return;const club=s.clubs[s.shot],d=getClub(club),target=ref(d);const speed=club==='1W'?70:Math.max(35,Math.sqrt((target/1.09361)*9.80665/Math.sin(2*18*Math.PI/180)));processShot({DATA:{ballspeed:String(speed.toFixed(2)),incline:'18',azimuth:String((s.shot-1)*0.7),backspin:'2500',sidespin:'0'}})},1400);return}if(!s.jsonDir||s.page!=='shot')return;try{let newest=null;for await(const [name,h] of s.jsonDir.entries()){if(h.kind==='file'&&name.toLowerCase().endsWith('.json')){let f=await h.getFile();if(!newest||f.lastModified>newest.lastModified)newest=f}}if(newest&&`${newest.name}:${newest.lastModified}`!==s.lastFile){s.lastFile=`${newest.name}:${newest.lastModified}`;processShot(JSON.parse(await newest.text()));return}}catch(e){console.warn(e)}setTimeout(pollDir,1000)}
 function num(v){let n=parseFloat(String(v).trim());if(!Number.isFinite(n))throw Error('数値変換できないデータがあります');return n}function processShot(j){try{let d=j.DATA||{},inp={ball:num(d.ballspeed),angle:num(d.incline),az:num(d.azimuth),back:num(d.backspin),side:num(d.sidespin)};let r=evaluate(s.clubs[s.shot],inp);s.results.push(r);s.page='rank';render()}catch(e){alert('ショットデータ取得エラー: '+e.message)}}
-function evaluate(club,x){let d=getClub(club),g=9.80665,m2y=1.09361,rad=z=>z*Math.PI/180;base=(x.ball*x.ball)*Math.sin(2*rad(x.angle))/g;let dist=base*m2y*s.Kd;let lat=dist*Math.tan(rad(x.az))+s.Ks*(x.side/1000)*dist;let abs=Math.abs(lat),reference=ref(d),rank='E',targetErr=null,ratio=null,forced=abs>d.LateralELimitYd;if(!forced){if(d.EvaluationMode==='DRIVER_DISTANCE'){ratio=dist/reference;rank=ratio>=d.S_Threshold?'S':ratio>=d.A_Threshold?'A':ratio>=d.B_Threshold?'B':ratio>=d.D_Threshold?'D':'E'}else{targetErr=Math.hypot(dist-reference,lat);rank=targetErr<=d.S_Threshold?'S':targetErr<=d.A_Threshold?'A':targetErr<=d.B_Threshold?'B':targetErr<=d.D_Threshold?'D':'E'}}return{club,tee:s.tee,evaluation_mode:d.EvaluationMode,reference_distance_yd:reference,estimated_distance_yd:dist,estimated_lateral_yd:lat,absolute_lateral_yd:abs,distance_error_yd:d.EvaluationMode==='TARGET_ACCURACY'?dist-reference:null,target_error_yd:targetErr,distance_achievement_ratio:ratio,forced_e_by_lateral:forced,rank}}
+function evaluate(club,x){
+ const d=getClub(club),g=9.80665,m2y=1.09361,rad=z=>z*Math.PI/180;
+ // VIEW互換暫定式 v1.1（2026-10-17 VIEW出力12ショットを基準に回帰）
+ const baseM=(x.ball*x.ball)*Math.sin(2*rad(x.angle))/g;
+ const baseYd=baseM*m2y;
+ const dist=-53.752286+0.22825128*baseYd+3.76178882*x.ball-1.11525021*(x.back/1000);
+ const launchLat=dist*Math.tan(rad(x.az));
+ const curveLat=Math.abs(x.back)<1?0:0.44697243*(x.side/x.back)*dist;
+ const lat=launchLat+curveLat;
+ const abs=Math.abs(lat),reference=ref(d);
+ let rank='E',targetErr=null,ratio=null;
+ const forced=abs>d.LateralELimitYd;
+ if(!forced){
+  if(d.EvaluationMode==='DRIVER_DISTANCE'){
+   ratio=dist/reference;
+   rank=ratio>=d.S_Threshold?'S':ratio>=d.A_Threshold?'A':ratio>=d.B_Threshold?'B':ratio>=d.D_Threshold?'D':'E';
+  }else{
+   targetErr=Math.hypot(dist-reference,lat);
+   rank=targetErr<=d.S_Threshold?'S':targetErr<=d.A_Threshold?'A':targetErr<=d.B_Threshold?'B':targetErr<=d.D_Threshold?'D':'E';
+  }
+ }
+ return{club,tee:s.tee,evaluation_mode:d.EvaluationMode,reference_distance_yd:reference,estimated_distance_yd:dist,estimated_lateral_yd:lat,absolute_lateral_yd:abs,distance_error_yd:d.EvaluationMode==='TARGET_ACCURACY'?dist-reference:null,target_error_yd:targetErr,distance_achievement_ratio:ratio,forced_e_by_lateral:forced,rank,trajectory_model:'VIEW_COMPAT_V1_1',base_distance_yd:baseYd,launch_lateral_yd:launchLat,curve_lateral_yd:curveLat,user_distance_offset_yd:0,user_lateral_offset_yd:0}
+}
 function rankHTML(r){let p=PALETTES[r.rank],rays='',parts='',waves='';for(let i=0;i<p[5];i++)rays+=`<i class="ray" style="background:${p[2]};transform:rotate(${i*360/p[5]}deg) translateY(-105px)"></i>`;for(let i=0;i<p[6];i++){let a=i*6.283/p[6],rr=130+Math.random()*90;parts+=`<i class="particle" style="background:${i%2?p[2]:p[0]};--dx:${Math.cos(a)*rr}px;--dy:${Math.sin(a)*rr}px"></i>`}for(let i=0;i<p[7];i++)waves+=`<i class="wave" style="border-color:${p[3]};animation-delay:${i*.09}s"></i>`;setTimeout(()=>{let b=document.querySelector('[data-nextshot]');if(b)b.disabled=false},1050);return `<div class="rankstage" style="background:radial-gradient(circle,${p[3]}55 0%,transparent 58%)">${waves}${rays}${parts}<div class="rank" style="background-image:linear-gradient(${p[0]},${p[1]})">${r.rank}</div><div class="rankmsg" style="color:${p[0]}">${p[4]}</div></div><div class="metrics"><div class="metric">推定飛距離<b>${r.estimated_distance_yd.toFixed(1)} yd</b></div><div class="metric">推定左右差<b>${r.estimated_lateral_yd.toFixed(1)} yd</b></div><div class="metric">基準飛距離<b>${r.reference_distance_yd.toFixed(0)} yd</b></div></div><button class="gummy small" data-nextshot disabled>${s.shot<2?'次のショット':'結果を見る'}</button>`}
 document.addEventListener('click',e=>{let b=e.target.closest('[data-nextshot]');if(!b||b.disabled)return;if(s.shot<2){s.shot++;nav('shot',b)}else{saveDay().then(()=>nav('results',b))}});async function saveDay(){let h=historyData(),today=new Date().toLocaleDateString('sv-SE');if(!h.some(x=>x.date===today)){h.push({date:today,ranks:s.results.map(x=>x.rank),results:s.results,timestamp:new Date().toISOString()});s.history[s.member]=h;if(s.demo)localStorage.setItem('oneshot_demo_history',JSON.stringify(s.history));else await writeJsonFile('oneshot_shot_history.json',s.history)}}function calcLevel(h){if(h.length<5)return null;let score={S:5,A:4,B:3,D:2,E:1},last=h.slice(-5).flatMap(x=>x.ranks),avg=last.reduce((a,x)=>a+score[x],0)/last.length;return Math.max(1,Math.min(100,Math.round((avg-1)/4*99+1)))}
 render();
